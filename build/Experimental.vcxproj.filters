@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\7000041455\OneDrive - Sony\Documents\Documents\Restaurant\build\CMakeFiles\ce02132a4ca5c0020074f95433ed4925\Experimental.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\7000041455\OneDrive - Sony\Documents\Documents\Restaurant\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\7000041455\OneDrive - Sony\Documents\Documents\Restaurant\build\CMakeFiles\Experimental" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{D08FA9C4-721D-33E2-916A-213364D36997}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

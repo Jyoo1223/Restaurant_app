@@ -1,0 +1,10 @@
+^C:\USERS\7000041455\ONEDRIVE - SONY\DOCUMENTS\DOCUMENTS\RESTAURANT\BUILD\CMAKEFILES\CE02132A4CA5C0020074F95433ED4925\GENERATE.STAMP.RULE
+setlocal
+C:\Software\cmake\bin\cmake.exe "-SC:/Users/7000041455/OneDrive - Sony/Documents/Documents/Restaurant" "-BC:/Users/7000041455/OneDrive - Sony/Documents/Documents/Restaurant/build" --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file "C:/Users/7000041455/OneDrive - Sony/Documents/Documents/Restaurant/build/Restaurant.sln"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

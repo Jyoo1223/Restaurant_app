@@ -1,0 +1,55 @@
+stages:
+  - build
+  - test
+
+variables:
+  BUILD_DIR: build
+  CONFIGURATION: Release
+
+before_script:
+  - apt-get update -y
+  - apt-get install -y cmake g++ git libgtest-dev
+  # Build GoogleTest (required because libgtest-dev only installs source)
+  - cd /usr/src/gtest && cmake . && make && cp *.a /usr/lib
+  - cd $CI_PROJECT_DIR
+
+build:
+  stage: build
+  script:
+    - rm -rf $BUILD_DIR
+    - mkdir $BUILD_DIR
+    - cd $BUILD_DIR
+    - cmake .. -DCMAKE_BUILD_TYPE=$CONFIGURATION
+    - cmake --build .
+  artifacts:
+    paths:
+      - $BUILD_DIR
+    expire_in: 1 week
+
+test:
+  stage: test
+  script:
+    - cd $BUILD_DIR
+    # Run all test executables (add all your test executables here)
+    - ./test_clearorder --gtest_output=xml:test-clearorder-results.xml
+    - ./test_emptyorder --gtest_output=xml:test-emptyorder-results.xml
+    - ./test_ids --gtest_output=xml:test-ids-results.xml
+    - ./test_largequantity --gtest_output=xml:test-largequantity-results.xml
+    - ./test_menu --gtest_output=xml:test-menu-results.xml
+    - ./test_orderitem --gtest_output=xml:test-orderitem-results.xml
+    - ./test_setname --gtest_output=xml:test-setname-results.xml
+  artifacts:
+    when: always
+    reports:
+      junit:
+        - $BUILD_DIR/test-clearorder-results.xml
+        - $BUILD_DIR/test-emptyorder-results.xml
+        - $BUILD_DIR/test-ids-results.xml
+        - $BUILD_DIR/test-largequantity-results.xml
+        - $BUILD_DIR/test-menu-results.xml
+        - $BUILD_DIR/test-orderitem-results.xml
+        - $BUILD_DIR/test-setname-results.xml
+    paths:
+      - $BUILD_DIR/*.xml
+  dependencies:
+    - build
