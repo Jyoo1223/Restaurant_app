@@ -1,6 +1,7 @@
 stages:
   - build
   - test
+  - deploy
 
 variables:
   BUILD_DIR: build
@@ -8,29 +9,33 @@ variables:
 
 before_script:
   - apt-get update -y
-  - apt-get install -y cmake g++ git libgtest-dev
-  # Build GoogleTest (required because libgtest-dev only installs source)
-  - cd /usr/src/gtest && cmake . && make && cp *.a /usr/lib
+  - apt-get install -y cmake g++ git libgtest-dev build-essential
+  # Build GoogleTest static libs (required because libgtest-dev installs source only)
+  - cd /usr/src/gtest
+  - cmake .
+  - make
+  - cp libgtest.a libgtest_main.a /usr/lib/ || echo "No .a files found, skipping"
   - cd $CI_PROJECT_DIR
 
 build:
   stage: build
   script:
     - rm -rf $BUILD_DIR
-    - mkdir $BUILD_DIR
+    - mkdir -p $BUILD_DIR
     - cd $BUILD_DIR
     - cmake .. -DCMAKE_BUILD_TYPE=$CONFIGURATION
     - cmake --build .
   artifacts:
     paths:
       - $BUILD_DIR
-    expire_in: 1 week
+    expire_in: 1 hour
 
 test:
   stage: test
+  dependencies:
+    - build
   script:
     - cd $BUILD_DIR
-    # Run all test executables (add all your test executables here)
     - ./test_clearorder --gtest_output=xml:test-clearorder-results.xml
     - ./test_emptyorder --gtest_output=xml:test-emptyorder-results.xml
     - ./test_ids --gtest_output=xml:test-ids-results.xml
@@ -51,5 +56,24 @@ test:
         - $BUILD_DIR/test-setname-results.xml
     paths:
       - $BUILD_DIR/*.xml
+
+deploy:
+  stage: deploy
   dependencies:
     - build
+  script:
+    - echo "Deploying application..."
+    - mkdir -p deploy_output
+    - cp $BUILD_DIR/test_clearorder deploy_output/ || echo "test_clearorder not found"
+    - cp $BUILD_DIR/test_emptyorder deploy_output/ || echo "test_emptyorder not found"
+    - cp $BUILD_DIR/test_ids deploy_output/ || echo "test_ids not found"
+    - cp $BUILD_DIR/test_largequantity deploy_output/ || echo "test_largequantity not found"
+    - cp $BUILD_DIR/test_menu deploy_output/ || echo "test_menu not found"
+    - cp $BUILD_DIR/test_orderitem deploy_output/ || echo "test_orderitem not found"
+    - cp $BUILD_DIR/test_setname deploy_output/ || echo "test_setname not found"
+    - ls deploy_output
+  artifacts:
+    paths:
+      - deploy_output
+    expire_in: 1 hour
+
