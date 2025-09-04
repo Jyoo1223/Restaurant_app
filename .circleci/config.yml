@@ -1,0 +1,60 @@
+version: 2.1
+
+jobs:
+  build:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y cmake libgtest-dev build-essential libopencv-dev
+            cd /usr/src/gtest
+            sudo cmake .
+            sudo make
+            sudo cp libgtest.a libgtest_main.a /usr/lib || echo "No .a files found, skipping"
+      - run:
+          name: Build OpenCV Image Tests
+          command: |
+            rm -rf build
+            mkdir build
+            cd build
+            cmake .. -DCMAKE_BUILD_TYPE=Release
+            cmake --build .
+      - persist_to_workspace:
+          root: .
+          paths:
+            - build
+
+  test:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Run passing OpenCV Image tests only
+          command: |
+            cd build
+            ./test_4_rotate --gtest_output=xml:test-4-rotate-results.xml
+            ./test_blur --gtest_output=xml:test-blur-results.xml
+            ./test_blur_mean --gtest_output=xml:test-blur-mean-results.xml
+            ./test_rotate --gtest_output=xml:test-rotate-results.xml
+            ./test_sobel --gtest_output=xml:test-sobel-results.xml
+      - run:
+          name: List test results
+          command: ls -l build/*.xml
+      - store_test_results:
+          path: build
+      - store_artifacts:
+          path: build
+
+workflows:
+  image_tests_workflow:
+    jobs:
+      - build
+      - test:
+          requires:
+            - build
