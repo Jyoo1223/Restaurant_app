@@ -23,11 +23,13 @@ jobs:
             cd build
             cmake .. -DCMAKE_BUILD_TYPE=Release
             cmake --build .
+            cp test_calculator ../tests/ || echo "test_calculator not found"
+
       - persist_to_workspace:
           root: .
           paths:
             - build
-            - tests   # Persist tests folder if needed
+            - tests
 
   test:
     docker:
@@ -36,22 +38,22 @@ jobs:
       - attach_workspace:
           at: .
       - run:
-          name: Run passing tests only
+          name: Run passing tests and generate XML reports
           command: |
-            echo "Listing test executables in tests folder:"
+            mkdir -p tests
+            echo "Tests found in tests/:"
             ls -l tests
-
-            # Only run tests whose names do NOT contain 'fail' (case-insensitive)
             PASSING_TESTS=$(ls tests | grep -v -i fail)
 
             echo "Running passing tests:"
             for test_exec in $PASSING_TESTS; do
-              echo "Running tests from: tests/$test_exec"
+              echo "Running ./tests/$test_exec"
               ./tests/$test_exec --gtest_output=xml:tests/${test_exec}_results.xml || true
             done
-      - run:
-          name: List generated XML files
-          command: ls -l tests/*.xml || echo "No XML reports found"
+
+            echo "Generated XML reports:"
+            ls -l tests/*.xml || echo "No XML reports found"
+
       - store_test_results:
           path: tests
       - store_artifacts:
