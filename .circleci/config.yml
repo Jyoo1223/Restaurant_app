@@ -23,8 +23,8 @@ jobs:
             cd build
             cmake .. -DCMAKE_BUILD_TYPE=Release
             cmake --build .
+            mkdir -p ../tests
             cp test_calculator ../tests/ || echo "test_calculator not found"
-
       - persist_to_workspace:
           root: .
           paths:
@@ -40,20 +40,11 @@ jobs:
       - run:
           name: Run passing tests and generate XML reports
           command: |
-            mkdir -p tests
-            echo "Tests found in tests/:"
-            ls -l tests
-            PASSING_TESTS=$(ls tests | grep -v -i fail)
-
-            echo "Running passing tests:"
-            for test_exec in $PASSING_TESTS; do
-              echo "Running ./tests/$test_exec"
-              ./tests/$test_exec --gtest_output=xml:tests/${test_exec}_results.xml || true
+            cd tests
+            for test_exec in $(ls | grep -v -i fail); do
+              chmod +x $test_exec
+              ./$test_exec --gtest_output=xml:${test_exec}_results.xml || true
             done
-
-            echo "Generated XML reports:"
-            ls -l tests/*.xml || echo "No XML reports found"
-
       - store_test_results:
           path: tests
       - store_artifacts:
