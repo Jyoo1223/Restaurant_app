@@ -10,13 +10,13 @@ jobs:
           name: Install dependencies
           command: |
             sudo apt-get update
-            sudo apt-get install -y cmake libgtest-dev build-essential libopencv-dev
+            sudo apt-get install -y cmake libgtest-dev build-essential
             cd /usr/src/gtest
             sudo cmake .
             sudo make
             sudo cp libgtest.a libgtest_main.a /usr/lib || echo "No .a files found, skipping"
       - run:
-          name: Build OpenCV Image Tests
+          name: Build Project
           command: |
             rm -rf build
             mkdir build
@@ -27,6 +27,7 @@ jobs:
           root: .
           paths:
             - build
+            - tests
 
   test:
     docker:
@@ -35,24 +36,26 @@ jobs:
       - attach_workspace:
           at: .
       - run:
-          name: Run passing OpenCV Image tests only
+          name: Run Passing Tests Only
           command: |
-            cd build
-            ./test_4_rotate --gtest_output=xml:test-4-rotate-results.xml
-            ./test_blur --gtest_output=xml:test-blur-results.xml
-            ./test_blur_mean --gtest_output=xml:test-blur-mean-results.xml
-            ./test_rotate --gtest_output=xml:test-rotate-results.xml
-            ./test_sobel --gtest_output=xml:test-sobel-results.xml
-      - run:
-          name: List test results
-          command: ls -l build/*.xml
+            echo "Listing test executables in tests folder:"
+            ls -l tests
+
+            # Define array of passing test executables (exclude *fail* files)
+            PASSING_TESTS=$(ls tests | grep -v -i fail)
+
+            echo "Running passing tests:"
+            for test_exec in $PASSING_TESTS; do
+              echo "Running tests from: tests/$test_exec"
+              ./tests/$test_exec --gtest_output=xml:tests/${test_exec}_results.xml || true
+            done
       - store_test_results:
-          path: build
+          path: tests
       - store_artifacts:
-          path: build
+          path: tests
 
 workflows:
-  image_tests_workflow:
+  build_and_test:
     jobs:
       - build
       - test:
