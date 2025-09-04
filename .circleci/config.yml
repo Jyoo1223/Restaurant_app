@@ -16,7 +16,7 @@ jobs:
             sudo make
             sudo cp libgtest.a libgtest_main.a /usr/lib || echo "No .a files found, skipping"
       - run:
-          name: Build Project
+          name: Build project
           command: |
             rm -rf build
             mkdir build
@@ -27,7 +27,7 @@ jobs:
           root: .
           paths:
             - build
-            - tests
+            - tests   # Persist tests folder if needed
 
   test:
     docker:
@@ -36,12 +36,12 @@ jobs:
       - attach_workspace:
           at: .
       - run:
-          name: Run Passing Tests Only
+          name: Run passing tests only
           command: |
             echo "Listing test executables in tests folder:"
             ls -l tests
 
-            # Define array of passing test executables (exclude *fail* files)
+            # Only run tests whose names do NOT contain 'fail' (case-insensitive)
             PASSING_TESTS=$(ls tests | grep -v -i fail)
 
             echo "Running passing tests:"
@@ -49,6 +49,9 @@ jobs:
               echo "Running tests from: tests/$test_exec"
               ./tests/$test_exec --gtest_output=xml:tests/${test_exec}_results.xml || true
             done
+      - run:
+          name: List generated XML files
+          command: ls -l tests/*.xml || echo "No XML reports found"
       - store_test_results:
           path: tests
       - store_artifacts:
